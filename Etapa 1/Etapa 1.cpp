@@ -1,9 +1,9 @@
 ﻿// Etapa1.cpp
 // Fichero principal 
 ////////////////////////////////////////////////////
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "GL/glut.h"
+#include "GL/gl.h"
+#include "GL/glu.h"
 const int W_WIDTH = 500; // Tama�o incial de la ventana
 const int W_HEIGHT = 500;
 GLfloat fAngulo; // Variable que indica el �ngulo de rotaci�n de los ejes. 
