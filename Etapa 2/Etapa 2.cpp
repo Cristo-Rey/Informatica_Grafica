@@ -63,6 +63,18 @@ void Idle(void)
 	glutPostRedisplay();
 }
 
+// Función que cambia el tamaño de la figura en base al tamaño de la ventana
+
+void reshape(int width, int height)
+{
+	if (width > height) {
+		glViewport((width - height) / 2, 0, height, height);
+	}
+	else {
+		glViewport(0, (height - width) / 2, width, width);
+	}
+}
+
 // Funci�n principal
 int main(int argc, char** argv)
 {
@@ -75,11 +87,14 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
 	// Creamos la nueva ventana
-	glutCreateWindow("Mi primera Ventana");
+	glutCreateWindow("Mi segunda Ventana");
 
 	// Indicamos cuales son las funciones de redibujado e idle
 	glutDisplayFunc(Display);
 	glutIdleFunc(Idle);
+
+	// Establecemos la función de reshape
+	glutReshapeFunc(reshape);
 
 	// El color de fondo ser� el negro (RGBA, RGB + Alpha channel)
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
