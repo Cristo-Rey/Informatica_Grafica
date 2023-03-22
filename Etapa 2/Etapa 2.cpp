@@ -1,9 +1,12 @@
 ﻿// Etapa1.cpp
 // Fichero principal 
 ////////////////////////////////////////////////////
+#include <iostream>
+
 #include "GL/glut.h"
 #include "GL/gl.h"
 #include "GL/glu.h"
+
 const int W_WIDTH = 500; // Tama�o incial de la ventana
 const int W_HEIGHT = 500;
 GLfloat fAngulo; // Variable que indica el �ngulo de rotaci�n de los ejes. 
@@ -44,6 +47,18 @@ void Display(void)
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glVertex3f(-0.5f, -0.866f, 0.0f);
 	glEnd();
+
+	glBegin(GL_QUADS);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glVertex3f(-0.2f, 0.2f, 0.0f);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(0.2f, 0.2f, 0.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(0.2f, -0.2f, 0.0f);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(-0.2f, -0.2f, 0.0f);
+	glEnd();
+
 	glPopMatrix();
 
 	glFlush();
