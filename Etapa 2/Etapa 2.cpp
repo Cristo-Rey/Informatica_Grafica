@@ -18,48 +18,96 @@ void Display(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glPushMatrix();
-	// Rotamos las proximas primitivas
-	glRotatef(fAngulo, 0.0f, 0.0f, 1.0f);
 	// Creamos a continuaci�n dibujamos los tres poligonos
-	glBegin(GL_POLYGON);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(1.0f, 0.0f, 0.0f);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(-0.5f, 0.866f, 0.0f);
-	glEnd();
 
-	glBegin(GL_POLYGON);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(1.0f, 0.0f, 0.0f);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(-0.5f, -0.866f, 0.0f);
-	glEnd();
-
-	glBegin(GL_POLYGON);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex3f(0.0f, 0.0f, 0.0f);
+	/*
+	glBegin(GL_LINES);
 	glColor3f(0.0f, 1.0f, 1.0f);
-	glVertex3f(-0.5f, 0.866f, 0.0f);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(-0.5f, -0.866f, 0.0f);
-	glEnd();
 
+	glVertex3f(0.0, 0.0,0);
+	glVertex3f(0.25, -0.25,0);
+
+	glBegin(GL_LINES);
+	glVertex3f(0.25, 0.25, 0);
+	glVertex3f(-0.25, -0.25, 0);
+
+	glEnd();
+	*/
+
+	// Quadrat superior esquerre
+	
+	glTranslatef(-0.5f,0.5f, 0.0f);
+	glRotatef(fAngulo, 0.0f, 0.0f, 1.0f);
+	
 	glBegin(GL_QUADS);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex3f(-0.2f, 0.2f, 0.0f);
 	glColor3f(0.0f, 1.0f, 1.0f);
-	glVertex3f(0.2f, 0.2f, 0.0f);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(0.2f, -0.2f, 0.0f);
-	glColor3f(0.0f, 1.0f, 1.0f);
-	glVertex3f(-0.2f, -0.2f, 0.0f);
+	glVertex3f(-0.25f, 0.25f, 0.0f);
+	glVertex3f(0.25f, 0.25f, 0.0f);
+	glVertex3f(0.25f, -0.25f, 0.0f);
+	glVertex3f(-0.25f, -0.25f, 0.0f);
 	glEnd();
+
+
+	//glRotatef(fAngulo, 0.0f, 0.0f, 1.0f);
+	
 
 	glPopMatrix();
+
+	// Quadrat superior dret
+	
+	glBegin(GL_QUADS);
+	glColor3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(0.75f, 0.75f, 0.0f);
+	glVertex3f(0.25f, 0.75f, 0.0f);
+	glVertex3f(0.25f, 0.25f, 0.0f);
+	glVertex3f(0.75f, 0.25f, 0.0f);
+	glEnd();
+
+	// Quadrat inferior esquerre
+
+	glBegin(GL_QUADS);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(-0.75f, -0.75f, 0.0f);
+	glVertex3f(-0.25f, -0.75f, 0.0f);
+	glVertex3f(-0.25f, -0.25f, 0.0f);
+	glVertex3f(-0.75f, -0.25f, 0.0f);
+	glEnd();
+
+	// Quadrat inferior dret
+	glPushMatrix();
+
+	glTranslatef(0.5f, -0.5f, 0.0f);
+	glRotatef(fAngulo, 1.0f, 1.0f, 1.0f);
+
+	glBegin(GL_QUADS);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glVertex3f(-0.25f, 0.25f, 0.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glVertex3f(0.25f, 0.25f, 0.0f);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(0.25f, -0.25f, 0.0f);
+	glColor3f(0.0f, 1.0f, 1.0f);
+	glVertex3f(-0.25f, -0.25f, 0.0f);
+	glEnd();
+
+	
+	
+	glPopMatrix();
+
+	// =========== Dibuixam Eixos ===========
+	// Eix Y
+	glBegin(GL_LINES);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 1.0f, 0.0f);
+	glVertex3f(0.0f, -1.0f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(-1.0f, 0.0f, 0.0f);
+	glVertex3f(1.0f, 0.0f, 0.0f);
+	glEnd();
+	
 
 	glFlush();
 
@@ -102,7 +150,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
 	// Creamos la nueva ventana
-	glutCreateWindow("Mi segunda Ventana");
+	glutCreateWindow("Mi segunda segunda Ventana");
 
 	// Indicamos cuales son las funciones de redibujado e idle
 	glutDisplayFunc(Display);
