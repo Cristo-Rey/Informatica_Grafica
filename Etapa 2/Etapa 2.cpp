@@ -10,6 +10,11 @@
 const int W_WIDTH = 500; // Tama�o incial de la ventana
 const int W_HEIGHT = 500;
 GLfloat fAngulo; // Variable que indica el �ngulo de rotaci�n de los ejes. 
+GLfloat tamany = 0;
+GLboolean creix = true;
+GLfloat radius = 0.25f;
+GLint numSegments = 30;
+GLfloat pos = 0;
 
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
@@ -47,47 +52,62 @@ void Display(void)
 	glVertex3f(-0.25f, -0.25f, 0.0f);
 	glEnd();
 
-
-	//glRotatef(fAngulo, 0.0f, 0.0f, 1.0f);
 	
 
 	glPopMatrix();
 
-	// Quadrat superior dret
-	
-	glBegin(GL_QUADS);
+	// Polígon superior dret
+	glPushMatrix();
+
+	glTranslatef(0.5f, 0.5f, 0.0f);
+	glScalef(tamany, tamany, 0.0f);
+
+	glBegin(GL_POLYGON);
 	glColor3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(0.75f, 0.75f, 0.0f);
-	glVertex3f(0.25f, 0.75f, 0.0f);
+	glVertex3f(-0.25f, 0.25f, 0.0f);
 	glVertex3f(0.25f, 0.25f, 0.0f);
-	glVertex3f(0.75f, 0.25f, 0.0f);
-	glEnd();
-
-	// Quadrat inferior esquerre
-
-	glBegin(GL_QUADS);
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(-0.75f, -0.75f, 0.0f);
-	glVertex3f(-0.25f, -0.75f, 0.0f);
+	glVertex3f(0.25f, -0.25f, 0.0f);
 	glVertex3f(-0.25f, -0.25f, 0.0f);
-	glVertex3f(-0.75f, -0.25f, 0.0f);
+	glVertex3f(-0.35f, -0.15f, 0.0f);
 	glEnd();
+
+	glPopMatrix();
+
+	// Triangle inferior esquerre
+
+	glPushMatrix();
+	//glTranslatef(0.5f, 0.5f, 0.0f);
+	
+	
+	glTranslatef(-0.5f, -0.5f, 0.0f);
+	glScalef(tamany-0.5f, tamany-0.5f, 0.0f);
+	glRotatef(fAngulo, 0.0f, 0.0f, 1.0f);
+
+	glBegin(GL_TRIANGLES);
+	glColor3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(-0.5f, -0.5f, 0.0f);
+	glVertex3f(0.5f, -0.5f, 0.0f);
+	glVertex3f(0.0f, 0.5f, 0.0f);
+	glEnd();
+
+	glPopMatrix();
 
 	// Quadrat inferior dret
 	glPushMatrix();
 
 	glTranslatef(0.5f, -0.5f, 0.0f);
-	glRotatef(fAngulo, 1.0f, 1.0f, 1.0f);
+	glTranslatef(pos, pos, 0.0f);
 
-	glBegin(GL_QUADS);
+	glVertex2f(0.0f, 0.0f);
+
+	glBegin(GL_TRIANGLE_FAN);
 	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex3f(-0.25f, 0.25f, 0.0f);
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glVertex3f(0.25f, 0.25f, 0.0f);
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(0.25f, -0.25f, 0.0f);
-	glColor3f(0.0f, 1.0f, 1.0f);
-	glVertex3f(-0.25f, -0.25f, 0.0f);
+	for (int i = 0; i <= numSegments; i++) {
+		GLfloat angle = i * 2.0f * 3.1415 / numSegments;
+		GLfloat x = radius * cosf(angle);
+		GLfloat y = radius * sinf(angle);
+		glVertex2f(x, y);
+	}
 	glEnd();
 
 	
@@ -122,6 +142,20 @@ void Idle(void)
 	// Si es mayor que dos pi la decrementamos
 	if (fAngulo > 360)
 		fAngulo -= 360;
+
+
+	if (creix) {
+		pos += 0.0001f;
+		tamany += 0.001f;
+	}
+	else{
+		tamany -= 0.001f;
+		pos -= 0.0001f;
+	}
+	if (tamany > 1.5)
+		creix = false;
+	if (tamany < 0.5)
+		creix = true;
 	// Indicamos que es necesario repintar la pantalla
 	glutPostRedisplay();
 }
