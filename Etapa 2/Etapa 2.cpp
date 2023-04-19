@@ -2,7 +2,6 @@
 // Fichero principal 
 ////////////////////////////////////////////////////
 #include <iostream>
-#include <math.h>
 
 #include "GL/glut.h"
 #include "GL/gl.h"
@@ -16,46 +15,6 @@ GLboolean creix = true;
 GLfloat radius = 0.25f;
 GLint numSegments = 30;
 GLfloat pos = 0;
-
-// Variables para el péndulo doble
-GLfloat M_PI = 3.1415;
-GLfloat M_PI_2 = 3.1415;
-GLfloat L1 = 0.5f;  // Longitud de la primera varilla
-GLfloat L2 = 0.3f;  // Longitud de la segunda varilla
-GLfloat m1 = 1.0f;  // Masa de la primera esfera
-GLfloat m2 = 0.5f;  // Masa de la segunda esfera
-GLfloat theta1 = 45.0f * M_PI / 180.0f;  // Ángulo de la primera varilla en radianes
-GLfloat theta2 = 30.0f * M_PI / 180.0f;  // Ángulo de la segunda varilla en radianes
-GLfloat omega1 = 0.0f;  // Velocidad angular de la primera varilla
-GLfloat omega2 = 0.0f;  // Velocidad angular de la segunda varilla
-GLfloat g = 9.8f;  // Aceleración debido a la gravedad
-GLfloat dt = 0.001f;  // Intervalo de tiempo para la simulación
-
-void simulatePendulum()
-{
-	// Se calcula la aceleración angular de las varillas
-	GLfloat num1 = -g * (2 * m1 + m2) * sin(theta1);
-	GLfloat num2 = -m2 * g * sin(theta1 - 2 * theta2);
-	GLfloat num3 = -2 * sin(theta1 - theta2) * m2;
-	GLfloat num4 = omega2 * omega2 * L2 + omega1 * omega1 * L1 * cos(theta1 - theta2);
-	GLfloat den = L1 * (2 * m1 + m2 - m2 * cos(2 * theta1 - 2 * theta2));
-	GLfloat alpha1 = (num1 + num2 + num3 * num4) / den;
-
-	GLfloat num5 = 2 * sin(theta1 - theta2);
-	GLfloat num6 = omega1 * omega1 * L1 * (m1 + m2);
-	GLfloat num7 = g * (m1 + m2) * cos(theta1);
-	GLfloat num8 = omega2 * omega2 * L2 * m2 * cos(theta1 - theta2);
-	GLfloat den2 = L2 * (2 * m1 + m2 - m2 * cos(2 * theta1 - 2 * theta2));
-	GLfloat alpha2 = (num5 * (num6 + num7 + num8)) / den2;
-
-	// Se actualiza la velocidad angular de las varillas
-	omega1 += alpha1 * dt;
-	omega2 += alpha2 * dt;
-
-	// Se actualiza el ángulo de las varillas
-	theta1 += omega1 * dt;
-	theta2 += omega2 * dt;
-}
 
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
@@ -168,43 +127,7 @@ void Display(void)
 	glVertex3f(-1.0f, 0.0f, 0.0f);
 	glVertex3f(1.0f, 0.0f, 0.0f);
 	glEnd();
-
-	glPushMatrix();
-
-	// Se borra el buffer de color y profundidad
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// Se especifica la posición de la primera esfera
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(L1 * sin(theta1), -L1 * cos(theta1), 0.0f);
-
-	// Se dibuja la primera esfera
-	glColor3f(0.0f, 1.0f, 1.0f);
-	glutSolidSphere(0.05f, 50, 50);
-
-	// Se especifica la posición de la segunda esfera
-	glTranslatef(L2 * sin(theta2), -L2 * cos(theta2), 0.0f);
-
-	// Se dibuja la segunda esfera
-	glColor3f(1.0f, 0.0f, 1.0f);
-	glutSolidSphere(0.05f, 50, 50);
-
-	// Se dibuja la primera varilla
-	glLoadIdentity();
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(L1 * sin(theta1), -L1 * cos(theta1), 0.0f);
-	glEnd();
-
-	// Se dibuja la segunda varilla
-	glBegin(GL_LINES);
-	glVertex3f(L1 * sin(theta1), -L1 * cos(theta1), 0.0f);
-	glVertex3f(L1 * sin(theta1) + L2 * sin(theta2), -L1 * cos(theta1) - L2 * cos(theta2), 0.0f);
-	glEnd();
-
-	// Se actualiza la simulación del péndulo doble
-	simulatePendulum();
+	
 
 	glFlush();
 
@@ -233,7 +156,6 @@ void Idle(void)
 		creix = false;
 	if (tamany < 0.5)
 		creix = true;
-
 	// Indicamos que es necesario repintar la pantalla
 	glutPostRedisplay();
 }
