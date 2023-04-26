@@ -90,20 +90,32 @@ void handleKeypress(unsigned char key, int x, int y) {
 
 		// plano cenital
 	case '1':
-		camPosX = 0.0f;
-		camPosY = 2.0f;
-		camPosZ = 0.0f;
+		camPosX = 0.00f;
+		camPosY = 5.0f;
+		camPosZ = 0.00f;
 
-		camDirX = 0.0f;
-		camDirY = 0.0f;
-		camDirZ = 0.0f;
+		camDirX = 0.001f;
+		camDirY = -2.6f;
+		camDirZ = 0.001f;
 
 		camUpX = 0.0f;
-		camUpY = 0.0f;
-		camUpZ = 1.0f;
+		camUpY = 1.0f;
+		camUpZ = 0.0f;
+
 		break;
 		// Plano picado
 	case '2':
+		camPosX = -5.0f;
+		camPosY = 5.0f;
+		camPosZ = 0.0f;
+
+		camDirX = 0.5f;
+		camDirY = -0.5f;
+		camDirZ = 0.0f;
+
+		camUpX = 0.0f;
+		camUpY = 1.0f;
+		camUpZ = 0.0f;
 		break;
 		// Plano Normal
 	case '3':
@@ -120,16 +132,28 @@ void handleKeypress(unsigned char key, int x, int y) {
 		break;
 		// Plano contrapicado
 	case '4':
+		camPosX = 0.0f;
+		camPosY = 3.0f;
+		camPosZ = 3.0f;
+
+		camDirX = 0.0f;
+		camDirY = -0.5f;
+		camDirZ = -0.5f;
+
+		camUpX = 0.0f;
+		camUpY = 1.0f;
+		camUpZ = 0.0f;
+
 		break;
 		// Plano Nadir
 	case '5':
-		camPosX = 0.0f;
+		camPosX = 0.00f;
 		camPosY = -5.0f;
-		camPosZ = 0.0f;
+		camPosZ = 0.00f;
 
-		camDirX = 0.0f;
-		camDirY = 0.0f;
-		camDirZ = 0.0f;
+		camDirX = 0.001f;
+		camDirY = 2.6f;
+		camDirZ = 0.001f;
 
 		camUpX = 0.0f;
 		camUpY = 1.0f;
