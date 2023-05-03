@@ -265,6 +265,8 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
 
+
+
 	// Creamos la nueva ventana
 	glutCreateWindow("Mi primera cuarta Ventana");
 

@@ -15,7 +15,7 @@ const int W_HEIGHT = 500;
 GLfloat rotacion = 0.0;
 
 float orbit_angle = 0.0; // Ángulo de la órbita de la esfera
-float orbit_radius = 1.0; // Radio de la órbita de la esfera
+float orbit_radius = 2.0; // Radio de la órbita de la esfera
 
 // Variables de estado de la cámara
 float camPosX = 0.0f;
@@ -35,6 +35,17 @@ float fov = 45.0f;
 float aspect = (float)windowWidth / (float)windowHeight;
 float nearClip = 0.1f;
 float farClip = 1000.0f;
+
+// Variables camara
+int last_x = 0, last_y = 0;   // última posición del ratón
+float camera_distance = 10.0f; // distancia de la cámara al origen
+float camera_pitch = 0.0f; // ángulo de inclinación de la cámara
+float camera_yaw = 0.0f; // ángulo de giro de la cámara
+
+// Variables de la luz
+GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+GLboolean sombreado = false;
 
 
 void dibuixaEixos() {
@@ -57,26 +68,6 @@ void dibuixaEixos() {
 // Función de manejo de eventos de teclado
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'w':
-		camPosX += camDirX * 0.1f;
-		camPosY += camDirY * 0.1f;
-		camPosZ += camDirZ * 0.1f;
-		break;
-	case 's':
-		camPosX -= camDirX * 0.1f;
-		camPosY -= camDirY * 0.1f;
-		camPosZ -= camDirZ * 0.1f;
-		break;
-	case 'a':
-		camPosX += camUpX * 0.1f;
-		camPosY += camUpY * 0.1f;
-		camPosZ += camUpZ * 0.1f;
-		break;
-	case 'd':
-		camPosX -= camUpX * 0.1f;
-		camPosY -= camUpY * 0.1f;
-		camPosZ -= camUpZ * 0.1f;
-		break;
 	case 'q':
 		camDirX = camDirX * cos(0.1f) + camUpX * sin(0.1f);
 		camDirY = camDirY * cos(0.1f) + camUpY * sin(0.1f);
@@ -159,11 +150,43 @@ void handleKeypress(unsigned char key, int x, int y) {
 		camUpY = 1.0f;
 		camUpZ = 0.0f;
 		break;
+
+		// Cambio coordenada X de la luz móvil
+	case 'a':
+		light_position[0] -= 0.5;
+		break;
+	case 'z':
+		// Cambio coordenada X de la luz móvil
+		light_position[0] += 0.5;
+		break;
+	case 's':
+		// Cambio coordenada Y de la luz móvil
+		light_position[1] -= 0.5;
+		break;
+	case 'x':
+		// Cambio coordenada Y de la luz móvil
+		light_position[1] += 0.5;
+		break;
+		// Cambio coordenada Z de la luz móvil
+	case 'd':
+		light_position[2] -= 0.5;
+		break;
+		// Cambio coordenada Z de la luz móvil
+	case 'c':
+		light_position[2] += 0.5;
+		break;
+		// Cambiamos el modo se sombreado entre Smooth y Flat
+	case ' ':
+	if(sombreado){
+		glShadeModel(GL_FLAT);
+		sombreado = false;
+	}else{
+		glShadeModel(GL_SMOOTH);
+		sombreado = true;
 	}
-	std::cout << "--------------------------------------------------------------------------" << std::endl;
-	std::cout << "Camera position: (" << camPosX << ", " << camPosY << ", " << camPosZ << ")" << std::endl;
-	std::cout << "Camera direction: (" << camDirX << ", " << camDirY << ", " << camDirZ << ")" << std::endl;
-	std::cout << "Camera up vector: (" << camUpX << ", " << camUpY << ", " << camUpZ << ")" << std::endl;
+		
+		break;
+	}
 }
 
 // Función de manejo de eventos de teclado especial
@@ -186,10 +209,58 @@ void handleSpecialKeypress(int key, int x, int y) {
 		camDirZ = camDirZ * cos(-0.1f) + camDirX * sin(-0.1f);
 		break;
 	}
-	std::cout << "--------------------------------------------------------------------------" << std::endl;
-	std::cout << "Camera position: (" << camPosX << ", " << camPosY << ", " << camPosZ << ")" << std::endl;
-	std::cout << "Camera direction: (" << camDirX << ", " << camDirY << ", " << camDirZ << ")" << std::endl;
-	std::cout << "Camera up vector: (" << camUpX << ", " << camUpY << ", " << camUpZ << ")" << std::endl;
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+}
+
+// Dibuixa un cub. Emprat per saber on tenim les llums col·locades
+void dibuixaBombilla(float x, float y, float z) {
+
+	glPushMatrix();
+	glTranslatef(x, y, z); // move the cube to the specified coordinates
+
+	glBegin(GL_QUADS);
+
+	// Front face
+	glColor3f(0.1f, 0.1f, 0.1f); // color blanc
+	glVertex3f(-0.1f, -0.1f, 0.1f);
+	glVertex3f(0.1f, -0.1f, 0.1f);
+	glVertex3f(0.1f, 0.1f, 0.1f);
+	glVertex3f(-0.1f, 0.1f, 0.1f);
+
+	// Back face
+	glVertex3f(-0.1f, -0.1f, -0.1f);
+	glVertex3f(-0.1f, 0.1f, -0.1f);
+	glVertex3f(0.1f, 0.1f, -0.1f);
+	glVertex3f(0.1f, -0.1f, -0.1f);
+
+	// Top face
+	glVertex3f(-0.1f, 0.1f, -0.1f);
+	glVertex3f(-0.1f, 0.1f, 0.1f);
+	glVertex3f(0.1f, 0.1f, 0.1f);
+	glVertex3f(0.1f, 0.1f, -0.1f);
+
+	// Bottom face
+	glVertex3f(-0.1f, -0.1f, -0.1f);
+	glVertex3f(0.1f, -0.1f, -0.1f);
+	glVertex3f(0.1f, -0.1f, 0.1f);
+	glVertex3f(-0.1f, -0.1f, 0.1f);
+
+	// Right face
+	glVertex3f(0.1f, -0.1f, -0.1f);
+	glVertex3f(0.1f, 0.1f, -0.1f);
+	glVertex3f(0.1f, 0.1f, 0.1f);
+	glVertex3f(0.1f, -0.1f, 0.1f);
+
+	// Left face
+	glVertex3f(-0.1f, -0.1f, -0.1f);
+	glVertex3f(-0.1f, -0.1f, 0.1f);
+	glVertex3f(-0.1f, 0.1f, 0.1f);
+	glVertex3f(-0.1f, 0.1f, -0.1f);
+
+	glEnd();
+
+	glPopMatrix();
 }
 
 // Funci�n que visualiza la escena OpenGL
@@ -197,6 +268,7 @@ void Display(void)
 {
 	// Limpiar el buffer de color y profundidad
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 
 	// Configurar la perspectiva de la cámara
 	glMatrixMode(GL_PROJECTION);
@@ -206,23 +278,59 @@ void Display(void)
 	// Configurar la posición y dirección de la cámara
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(camPosX, camPosY, camPosZ, camPosX + camDirX, camPosY + camDirY, camPosZ + camDirZ, camUpX, camUpY, camUpZ);
+	gluLookAt(
+		camera_distance * sin(camera_yaw) * cos(camera_pitch),
+		camera_distance * sin(camera_pitch),
+		camera_distance * cos(camera_yaw) * cos(camera_pitch),
+		0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f
+	);
+	//gluLookAt(camPosX, camPosY, camPosZ, camPosX + camDirX, camPosY + camDirY, camPosZ + camDirZ, camUpX, camUpY, camUpZ);
+
 
 	dibuixaEixos();
 
 	glPushMatrix();
 	glColor3f(1.0, 0.0, 0.0); // Establecer el color rojo
 	//glRotatef(rotacion, 0.0, 1.0, 1.0);
-	glutWireTeapot(1); // Dibujar una tetera 
+	glutSolidTeapot(1); // Dibujar una tetera 
 	glPopMatrix();
+
+
+	glBegin(GL_QUADS);
+	glColor3f(1.0, 1.0, 0.0);
+	// Set the normal vector to (0,1,0)
+	glNormal3f(0.0f, -1.0f, 0.0f);
+
+	// Set the vertices of the square
+	glVertex3f(-1.0f, 0.0f, -1.0f);
+	glVertex3f(-1.0f, 0.0f, 1.0f);
+	glVertex3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(1.0f, 0.0f, -1.0f);
+
+	glEnd();
+
+
 
 	glPushMatrix();
 	// Dibujar la esfera que orbita
 	glColor3f(0.0, 0.0, 1.0);
 	glTranslatef(orbit_radius * cos(orbit_angle), 0.0, orbit_radius * sin(orbit_angle));
-	glutWireSphere(0.5, 20, 20);
+	glutSolidSphere(0.5, 20, 20);
 	glTranslatef(-orbit_radius * cos(orbit_angle), 0.0, -orbit_radius * sin(orbit_angle));
 	glPopMatrix();
+
+
+	// Ponemos una luz
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	// Ponemos un cubo en el origen de la luz para ver donde está colocada la luz
+	dibuixaBombilla(light_position[0], light_position[1], light_position[2]);
+
+	// Ponemos una luz ambiental no muy potente
+	glEnable(GL_LIGHT1);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+
 
 	glFlush();
 
@@ -253,6 +361,28 @@ void reshape(int width, int height)
 	}
 }
 
+// Función para controlar el movimiento del ratón
+void motion(int x, int y)
+{
+	int delta_x = x - last_x;
+	int delta_y = y - last_y;
+
+	camera_yaw += delta_x * 0.01f;
+	camera_pitch += delta_y * 0.01f;
+
+	if (camera_pitch < -1.5f) {
+		camera_pitch = -1.5f;
+	}
+	if (camera_pitch > 1.5f) {
+		camera_pitch = 1.5f;
+	}
+
+	last_x = x;
+	last_y = y;
+
+	glutPostRedisplay();
+}
+
 // Funci�n principal
 int main(int argc, char** argv)
 {
@@ -266,11 +396,14 @@ int main(int argc, char** argv)
 
 
 	// Creamos la nueva ventana
-	glutCreateWindow("Mi primera cuarta Ventana");
+	glutCreateWindow("Mi primera quinta Ventana");
 
 	// Indicamos cuales son las funciones de redibujado e idle
 	glutDisplayFunc(Display);
 	glutIdleFunc(Idle);
+
+	// Movimiento de la camara con el raton
+	glutMotionFunc(motion);
 
 	// Establecemos la función de reshape
 	glutReshapeFunc(reshape);
@@ -282,6 +415,11 @@ int main(int argc, char** argv)
 
 	glutKeyboardFunc(handleKeypress);
 	glutSpecialFunc(handleSpecialKeypress);
+
+	// Habilitamos la renderización de luz
+	glEnable(GL_LIGHTING);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
 	// Comienza la ejecuci�n del core de GLUT
 	glutMainLoop();
