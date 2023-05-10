@@ -266,6 +266,13 @@ void dibuixaBombilla(float x, float y, float z) {
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
 {
+
+	// Habilitar el z-buffer
+	glEnable(GL_DEPTH_TEST);
+
+	// Configurar la función de comparación de profundidad
+	glDepthFunc(GL_LEQUAL);
+
 	// Limpiar el buffer de color y profundidad
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
@@ -291,8 +298,7 @@ void Display(void)
 	dibuixaEixos();
 
 	glPushMatrix();
-	glColor3f(1.0, 0.0, 0.0); // Establecer el color rojo
-	//glRotatef(rotacion, 0.0, 1.0, 1.0);
+	glColor4f(1.0, 0.0, 1.0,1.0); // Establecer el color rojo
 	glutSolidTeapot(1); // Dibujar una tetera 
 	glPopMatrix();
 
@@ -410,8 +416,6 @@ int main(int argc, char** argv)
 
 	// El color de fondo ser� el negro (RGBA, RGB + Alpha channel)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glFrustum(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
-	//glOrtho(-1.0, 1.0f, -1.0, 1.0f, -1.0, 1.0f);
 
 	glutKeyboardFunc(handleKeypress);
 	glutSpecialFunc(handleSpecialKeypress);
