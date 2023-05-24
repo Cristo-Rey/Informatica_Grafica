@@ -9,6 +9,12 @@ using namespace std;
 #include <vector>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <string>
+#include <sstream>
+#include <map>
+#include <fstream>
+#include <random>
+
 
 #include "GL/glut.h"
 #include "GL/gl.h"
@@ -22,17 +28,6 @@ GLfloat rotacion = 0.0;
 
 float orbit_angle = 0.0; // Ángulo de la órbita de la esfera
 float orbit_radius = 2.0; // Radio de la órbita de la esfera
-
-// Variables de estado de la cámara
-float camPosX = 0.0f;
-float camPosY = 0.0f;
-float camPosZ = 5.0f;
-float camDirX = 0.0f;
-float camDirY = 0.0f;
-float camDirZ = -1.0f;
-float camUpX = 0.0f;
-float camUpY = 1.0f;
-float camUpZ = 0.0f;
 
 // Variables de estado de la perspectiva
 int windowWidth = 800;
@@ -51,10 +46,13 @@ float camera_yaw = 0.0f; // ángulo de giro de la cámara
 // Variables de la luz
 GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
-GLboolean sombreado = false;
 
+void drawBlenderModel(float x, float y, float z, string filename) {
+	std::random_device rd;
+	std::mt19937 gen(rd());
 
-void drawBlenderModel(float x, float y, float z, string filename, string textureFilename) {
+	// Define the range of possible values
+	std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 	// Create Assimp importer and read file
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
@@ -62,32 +60,7 @@ void drawBlenderModel(float x, float y, float z, string filename, string texture
 		cerr << "Error: Unable to load model file '" << filename << "': " << importer.GetErrorString() << endl;
 		return;
 	}
-
-	// Load texture
-	int width, height, channels;
-	unsigned char* data = stbi_load(textureFilename.c_str(), &width, &height, &channels, STBI_rgb_alpha);
-	if (!data) {
-		cerr << "Error: Unable to load texture file '" << textureFilename << "': " << stbi_failure_reason() << endl;
-		return;
-	}
-
-	// Generate and bind texture
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	// Set texture parameters and upload image data
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	stbi_image_free(data);
-
-	// Enable texturing
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
+	float colors[3][3] = { {0.0,0.24,0.02},{0.17,0.09,0.03}, {0.54, 0.26, 0.01} };
 	// Draw meshes
 	glPushMatrix();
 	glTranslatef(x, y, z);
@@ -97,10 +70,10 @@ void drawBlenderModel(float x, float y, float z, string filename, string texture
 		for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
 			const aiFace& face = mesh->mFaces[j];
 			for (unsigned int k = 0; k < face.mNumIndices; k++) {
+				int randomn = dist(gen);
+				//glColor3f(colors[randomn][0],colors[randomn][1],colors[randomn][2]);
+				glColor3f(dist(gen),dist(gen), dist(gen));
 				unsigned int index = face.mIndices[k];
-				if (mesh->HasTextureCoords(0)) {
-					glTexCoord2fv(&mesh->mTextureCoords[0][index].x);
-				}
 				if (mesh->HasNormals()) {
 					glNormal3fv(&mesh->mNormals[index].x);
 				}
@@ -110,11 +83,6 @@ void drawBlenderModel(float x, float y, float z, string filename, string texture
 		glEnd();
 	}
 	glPopMatrix();
-
-	// Disable texturing
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDeleteTextures(1, &textureID);
 }
 
 void dibuixaEixos() {
@@ -137,89 +105,6 @@ void dibuixaEixos() {
 // Función de manejo de eventos de teclado
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'q':
-		camDirX = camDirX * cos(0.1f) + camUpX * sin(0.1f);
-		camDirY = camDirY * cos(0.1f) + camUpY * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camUpZ * sin(0.1f);
-		break;
-	case 'e':
-		camDirX = camDirX * cos(-0.1f) + camUpX * sin(-0.1f);
-		camDirY = camDirY * cos(-0.1f) + camUpY * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camUpZ * sin(-0.1f);
-		break;
-
-		// plano cenital
-	case '1':
-		camPosX = 0.00f;
-		camPosY = 5.0f;
-		camPosZ = 0.00f;
-
-		camDirX = 0.001f;
-		camDirY = -2.6f;
-		camDirZ = 0.001f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano picado
-	case '2':
-		camPosX = -5.0f;
-		camPosY = 5.0f;
-		camPosZ = 0.0f;
-
-		camDirX = 0.5f;
-		camDirY = -0.5f;
-		camDirZ = 0.0f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-		break;
-		// Plano Normal
-	case '3':
-		camPosX = 0.0f;
-		camPosY = 0.0f;
-		camPosZ = 5.0f;
-		camDirX = 0.0f;
-		camDirY = 0.0f;
-		camDirZ = -1.0f;
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano contrapicado
-	case '4':
-		camPosX = 0.0f;
-		camPosY = 3.0f;
-		camPosZ = 3.0f;
-
-		camDirX = 0.0f;
-		camDirY = -0.5f;
-		camDirZ = -0.5f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano Nadir
-	case '5':
-		camPosX = 0.00f;
-		camPosY = -5.0f;
-		camPosZ = 0.00f;
-
-		camDirX = 0.001f;
-		camDirY = 2.6f;
-		camDirZ = 0.001f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-		break;
-
 		// Cambio coordenada X de la luz móvil
 	case 'a':
 		light_position[0] -= 0.5;
@@ -244,41 +129,11 @@ void handleKeypress(unsigned char key, int x, int y) {
 	case 'c':
 		light_position[2] += 0.5;
 		break;
-		// Cambiamos el modo se sombreado entre Smooth y Flat
-	case ' ':
-		if (sombreado) {
-			glShadeModel(GL_FLAT);
-			sombreado = false;
-		}
-		else {
-			glShadeModel(GL_SMOOTH);
-			sombreado = true;
-		}
-
-		break;
 	}
 }
 
 // Función de manejo de eventos de teclado especial
 void handleSpecialKeypress(int key, int x, int y) {
-	switch (key) {
-	case GLUT_KEY_UP:
-		camDirY = camDirY * cos(0.1f) - camDirZ * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camDirY * sin(0.1f);
-		break;
-	case GLUT_KEY_DOWN:
-		camDirY = camDirY * cos(-0.1f) - camDirZ * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camDirY * sin(-0.1f);
-		break;
-	case GLUT_KEY_LEFT:
-		camDirX = camDirX * cos(0.1f) - camDirZ * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camDirX * sin(0.1f);
-		break;
-	case GLUT_KEY_RIGHT:
-		camDirX = camDirX * cos(-0.1f) - camDirZ * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camDirX * sin(-0.1f);
-		break;
-	}
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
 }
@@ -336,7 +191,6 @@ void dibuixaBombilla(float x, float y, float z) {
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
 {
-
 	// Habilitar el z-buffer
 	glEnable(GL_DEPTH_TEST);
 
@@ -345,7 +199,6 @@ void Display(void)
 
 	// Limpiar el buffer de color y profundidad
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 	// Configurar la perspectiva de la cámara
 	glMatrixMode(GL_PROJECTION);
@@ -362,47 +215,19 @@ void Display(void)
 		0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f
 	);
-	//gluLookAt(camPosX, camPosY, camPosZ, camPosX + camDirX, camPosY + camDirY, camPosZ + camDirZ, camUpX, camUpY, camUpZ);
 
 
 	dibuixaEixos();
 	glPushMatrix();
+	glColor3f(1.0, 1.0, 1.0);
 	glTranslatef(orbit_radius * cos(orbit_angle), 0.0, orbit_radius * sin(orbit_angle));
-	drawBlenderModel(0, 0, 0, "aviooo.obj","cammo.jpg");
-	drawBlenderModel(0, 0, 0, "helixxx.obj","cammo.jpg");
+	drawBlenderModel(0, 0, 0, "avionsi.obj");
+	glColor3f(0.8, 0.7, 0.6);
+	drawBlenderModel(0, 0, 0, "helixi.obj");
 	glTranslatef(-orbit_radius * cos(orbit_angle), 0.0, -orbit_radius * sin(orbit_angle));
 	glPopMatrix();
-
-
-	//glPushMatrix();
-	//glColor4f(1.0, 0.0, 1.0, 1.0); // Establecer el color rojo
-	//glutSolidTeapot(1); // Dibujar una tetera 
-	//glPopMatrix();
-
-
-	//glBegin(GL_QUADS);
-	//glColor3f(1.0, 1.0, 0.0);
-	// Set the normal vector to (0,1,0)
-	//glNormal3f(0.0f, -1.0f, 0.0f);
-
-	// Set the vertices of the square
-	//glVertex3f(-1.0f, 0.0f, -1.0f);
-	//glVertex3f(-1.0f, 0.0f, 1.0f);
-	//glVertex3f(1.0f, 0.0f, 1.0f);
-	//glVertex3f(1.0f, 0.0f, -1.0f);
 
 	glEnd();
-
-
-
-	glPushMatrix();
-	// Dibujar la esfera que orbita
-	glColor3f(0.0, 0.0, 1.0);
-	glTranslatef(orbit_radius * cos(orbit_angle), 0.0, orbit_radius * sin(orbit_angle));
-	glutSolidSphere(0.5, 20, 20);
-	glTranslatef(-orbit_radius * cos(orbit_angle), 0.0, -orbit_radius * sin(orbit_angle));
-	glPopMatrix();
-
 
 	// Ponemos una luz
 	glEnable(GL_LIGHT0);
@@ -424,9 +249,9 @@ void Display(void)
 void Idle(void)
 {
 	if (rotacion > 360.0) rotacion = 0.0;
-	rotacion += 0.1f;
+	rotacion += 0.05f;
 
-	orbit_angle += 0.001; // Incrementar el ángulo de la órbita
+	orbit_angle += 0.1; // Incrementar el ángulo de la órbita
 
 	// Indicamos que es necesario repintar la pantalla
 	glutPostRedisplay();
@@ -479,7 +304,7 @@ int main(int argc, char** argv)
 
 
 	// Creamos la nueva ventana
-	glutCreateWindow("Mi primera quinta Ventana");
+	glutCreateWindow("Mi primera sexta Ventana");
 
 	// Indicamos cuales son las funciones de redibujado e idle
 	glutDisplayFunc(Display);
