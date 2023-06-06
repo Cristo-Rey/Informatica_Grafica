@@ -29,32 +29,23 @@ float avioY = 0.0;
 float avioZ = 0.0;
 float angle_helix = 0.0;
 
-const float ANELLS_COORDS[10][3] = { {0.0,0.0,5.0},{5.0,5.0,5.0},{20.0,15.0,10.0},{7.0,5.0,7.0},{-5.0,5.0,5.0},{-10.0,15.0,10.0},{-10.0,-15.0,10.0},{-7.0,5.0,5.0},{-7.0,-5.0,5.0},{-10.0,0.0,5.0} };
+float camX = 0.0;
+float camY = 0.0;
+float camZ = 0.0;
 
-const int W_WIDTH = 500; // Tama�o incial de la ventana
-const int W_HEIGHT = 500;
+const int W_WIDTH = 1280; // Tama�o incial de la ventana
+const int W_HEIGHT = 720;
 GLfloat rotacion = 0.0;
 
-float orbit_angle = 0.0; // Ángulo de la órbita de la esfera
-float orbit_radius = 2.0; // Radio de la órbita de la esfera
-
 // Variables de estado de la perspectiva
-int windowWidth = 800;
-int windowHeight = 600;
 float fov = 45.0f;
-float aspect = (float)windowWidth / (float)windowHeight;
+float aspect = (float)W_WIDTH / (float)W_HEIGHT;
 float nearClip = 0.1f;
 float farClip = 1000.0f;
 
-// Variables camara
-int last_x = 0, last_y = 0;   // última posición del ratón
-float camera_distance = 10.0f; // distancia de la cámara al origen
-float camera_pitch = 0.0f; // ángulo de inc linación de la cámara
-float camera_yaw = 0.0f; // ángulo de giro de la cámara
-
 // Variables de la luz
 GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
-GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
+GLfloat light_ambient[] = { 0.0025, 0.0025, 0.0025, 1.0 };
 
 // ID de la textura
 GLuint texturaID; // ID de la textura
@@ -71,9 +62,9 @@ void drawBlenderModel(float x, float y, float z, string filename) {
 	// Draw meshes
 	glPushMatrix();
 	glTranslatef(x, y, z);
-	if(filename=="helix.obj"){
-		glRotatef(angle_helix,0.0,0.0,1.0);
-		angle_helix=angle_helix+20.0;
+	if (filename == "helix.obj") {
+		glRotatef(angle_helix, 0.0, 0.0, 1.0);
+		angle_helix = angle_helix + 20.0;
 	}
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 		const aiMesh* mesh = scene->mMeshes[i];
@@ -94,55 +85,19 @@ void drawBlenderModel(float x, float y, float z, string filename) {
 }
 
 
-void drawCylinderWithSphere(float x, float y, float z, float h, float r, float sphereRadius, int slices, int stacks) {
-    // Set the color of the cylinder and sphere
-    glColor3f(0.5f, 0.5f, 0.5f);
+void dibuixaFanal(float x, float y, float z) {
+	GLUquadricObj* sphere = gluNewQuadric();
+	GLUquadricObj* cylinder = gluNewQuadric();
+	// Set the color of the cylinder and sphere
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	gluSphere(sphere, 1.0, 50, 50);
+	glColor3f(0.15f, 0.15f, 0.15f);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	gluCylinder(cylinder, 1.0, 1.0, 10.0, 50, 50);
+	glColor3f(0.85f, 0.85f, 0.85f);
 
-    // Draw the top and bottom disks of the cylinder
-    const float diskHeight = h / 2.0f;
-    const int diskSlices = slices;
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(x, y + diskHeight, z);
-    for (int i = 0; i <= diskSlices; i++) {
-        float angle = i * 2.0f * PI / diskSlices;
-        glVertex3f(x + r * cos(angle), y + diskHeight, z + r * sin(angle));
-    }
-    glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(x, y - diskHeight, z);
-    for (int i = 0; i <= diskSlices; i++) {
-        float angle = i * 2.0f * PI / diskSlices;
-        glVertex3f(x + r * cos(angle), y - diskHeight, z + r * sin(angle));
-    }
-    glEnd();
-
-    // Draw the sides of the cylinder
-    const float sideHeight = h;
-    const int sideSlices = slices;
-    const int sideStacks = stacks;
-    glBegin(GL_QUAD_STRIP);
-    for (int i = 0; i <= sideSlices; i++) {
-        float angle = i * 2.0f * PI / sideSlices;
-        float x1 = x + r * cos(angle);
-        float z1 = z + r * sin(angle);
-        float x2 = x + r * cos(angle);
-        float z2 = z + r * sin(angle);
-        for (int j = 0; j <= sideStacks; j++) {
-            float y = -diskHeight + j * sideHeight / sideStacks;
-            glVertex3f(x1, y, z1);
-            glVertex3f(x2, y + sideHeight / sideStacks, z2);
-        }
-    }
-    glEnd();
-
-    // Draw the sphere on top of the cylinder
-    const int sphereSlices = slices;
-    const int sphereStacks = stacks;
-    glColor3f(1.0f, 1.0f, 0.0f); // set the color of the sphere to yellow
-    glPushMatrix();
-    glTranslatef(x, y + diskHeight + sphereRadius, z); // move to the top of the cylinder
-    glutSolidSphere(sphereRadius, sphereSlices, sphereStacks); // draw a sphere
-    glPopMatrix();
+	glPopMatrix();
 }
 
 void dibuixaEnterra() {
@@ -198,33 +153,38 @@ void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 		// Cambio coordenada X de la luz móvil
 	case 'w':
-		avioZ = avioZ + 1.0;
+		avioY = avioY + 0.5;
 		break;
 	case 'a':
-		avioX = avioX + 1.0;
+		avioX = avioX + 0.5;
 		break;
 	case 's':
-		avioZ = avioZ - 1.0;
+		avioY = avioY - 0.5;
 		break;
 	case 'd':
-		avioX = avioX - 1.0;
+		avioX = avioX - 0.5;
+		break;
+	case ' ':
+		if (camZ == 0.0) {
+			camX = 0.0;
+			camY = 0.0;
+			camZ = 20.0;
+		}
+		else {
+			camX = 0.0;
+			camY = 0.0;
+			camZ = 0.0;
+		}
+		break;
+	case 'r':
+		avioX = 0.0;
+		avioY = 0.0;
+		avioZ = 0.0;
 		break;
 	}
 }
 
-// Función de manejo de eventos de teclado especial
-void handleSpecialKeypress(int key, int x, int y) {
-	switch (key) {
-	case GLUT_KEY_DOWN:
-		avioY = avioY - 1.0;
-		break;
-	case GLUT_KEY_UP:
-		avioY = avioY + 1.0;
-		break;
-	}
-}
 
-// Dibuixa un cub. Emprat per saber on tenim les llums col·locades
 void dibuixaBombilla(float x, float y, float z) {
 
 	glPushMatrix();
@@ -274,7 +234,23 @@ void dibuixaBombilla(float x, float y, float z) {
 	glPopMatrix();
 }
 
-
+// Función de manejo de eventos de teclado especial
+void handleSpecialKeypress(int key, int x, int y) {
+	switch (key) {
+	case GLUT_KEY_DOWN:
+		camY = camY - 1.0;
+		break;
+	case GLUT_KEY_UP:
+		camY = camY + 1.0;
+		break;
+	case GLUT_KEY_LEFT:
+		camX = camX - 1.0;
+		break;
+	case GLUT_KEY_RIGHT:
+		camX = camX + 1.0;
+		break;
+	}
+}
 
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
@@ -297,10 +273,8 @@ void Display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(
-		camera_distance * sin(camera_yaw) * cos(camera_pitch),
-		camera_distance * sin(camera_pitch),
-		camera_distance * cos(camera_yaw) * cos(camera_pitch),
-		0.0f, 0.0f, 0.0f,
+		avioX + camX, avioY + camY + 2.0, avioZ + camZ - 10.0,
+		avioX, avioY, avioZ,
 		0.0f, 1.0f, 0.0f
 	);
 
@@ -318,38 +292,69 @@ void Display(void)
 	glPopMatrix();
 	glEnd();
 
+
+
 	for (int i = 0; i < QT_ANELLS; i++) {
 		glPushMatrix();
-		glTranslatef(5.0 + 2.7 * i, 5.0 + 1.5 * i, 10.0 * i);
-		glutWireTorus(0.5, 3.5, 75, 50);
+		glTranslatef(5.0 + 2.7 * i, 5.0 + 1.5 * i, 20.0 * i);
+		glutSolidTorus(0.5, 3.5, 75, 50);
 		glPopMatrix();
+		if (i == 0) {
+			float coords[] = { (float)(5.0 + 2.7 * i), (float)(5.0 + 1.5 * i), (float)(20.0 * i) };
+
+			glEnable(GL_LIGHT0);
+			glLightfv(GL_LIGHT0, GL_POSITION, coords);
+			dibuixaBombilla(5.0 + 2.7 * i, 5.0 + 1.5 * i, 20.0 * i);
+		}
+
+
+		float fanal_0_position[] = { 10.0f, -5.0f, 60.0f };
+		float fanal_1_position[] = { -10.0f, -5.0f, 60.0f };
+		float fanal_2_position[] = { 10.0f, -5.0f, 200.0f };
+		float fanal_3_position[] = { -10.0f, -5.0f, 200.0f };
+		float fanal_4_position[] = { 10.0f, -5.0f, 340.0f };
+		float fanal_5_position[] = { -10.0f, -5.0f, 340.0f };
+
+
+		glColor3f(0.85f, 0.15f, 0.15f);
+		dibuixaFanal(fanal_0_position[0], fanal_0_position[1], fanal_0_position[2]);
+
+		glColor3f(0.15f, 0.85f, 0.15f);
+		dibuixaFanal(fanal_1_position[0], fanal_1_position[1], fanal_1_position[2]);
+
+		glColor3f(0.85f, 0.15f, 0.15f);
+		dibuixaFanal(fanal_2_position[0], fanal_2_position[1], fanal_2_position[2]);
+
+		glColor3f(0.15f, 0.85f, 0.15f);
+		dibuixaFanal(fanal_3_position[0], fanal_3_position[1], fanal_3_position[2]);
+
+		glColor3f(0.85f, 0.15f, 0.15f);
+		dibuixaFanal(fanal_4_position[0], fanal_4_position[1], fanal_4_position[2]);
+
+		glColor3f(0.15f, 0.85f, 0.15f);
+		dibuixaFanal(fanal_5_position[0], fanal_5_position[1], fanal_5_position[2]);
 	}
 
-	drawCylinderWithSphere(0.0f, 0.0f, -10.0f, 4.0f, 1.0f, 0.5f, 160, 80);
-
 	// Ponemos una luz
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	// Ponemos un cubo en el origen de la luz para ver donde está colocada la luz
-	dibuixaBombilla(light_position[0], light_position[1], light_position[2]);
 
 	// Ponemos una luz ambiental no muy potente
-	glEnable(GL_LIGHT1);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+	glEnable(GL_LIGHT7);
+	glLightfv(GL_LIGHT7, GL_AMBIENT, light_ambient);
 
 
 	glFlush();
 
 	glutSwapBuffers();
+
 }
 
 // Funci�n que se ejecuta cuando el sistema no esta ocupado
 void Idle(void)
 {
 	if (rotacion > 360.0) rotacion = 0.0;
-	rotacion += 0.05f;
+	rotacion += 0.1f;
 
-	orbit_angle += 0.1; // Incrementar el ángulo de la órbita
+	avioZ += 0.5;
 
 	// Indicamos que es necesario repintar la pantalla
 	glutPostRedisplay();
@@ -359,35 +364,32 @@ void Idle(void)
 
 void reshape(int width, int height)
 {
-	if (width > height) {
-		glViewport((width - height) / 2, 0, height, height);
+	const int targetWidth = 1280;
+	const int targetHeight = 720;
+
+	float targetAspectRatio = static_cast<float>(targetWidth) / targetHeight;
+	float currentAspectRatio = static_cast<float>(width) / height;
+
+	int viewportWidth, viewportHeight;
+	int offsetX, offsetY;
+
+	if (currentAspectRatio > targetAspectRatio) {
+		viewportHeight = height;
+		viewportWidth = static_cast<int>(viewportHeight * targetAspectRatio);
+		offsetX = (width - viewportWidth) / 2;
+		offsetY = 0;
 	}
 	else {
-		glViewport(0, (height - width) / 2, width, width);
+		viewportWidth = width;
+		viewportHeight = static_cast<int>(viewportWidth / targetAspectRatio);
+		offsetX = 0;
+		offsetY = (height - viewportHeight) / 2;
 	}
+
+	glViewport(offsetX, offsetY, viewportWidth, viewportHeight);
 }
 
-// Función para controlar el movimiento del ratón
-void motion(int x, int y)
-{
-	int delta_x = x - last_x;
-	int delta_y = y - last_y;
 
-	camera_yaw += delta_x * 0.01f;
-	camera_pitch += delta_y * 0.01f;
-
-	if (camera_pitch < -1.5f) {
-		camera_pitch = -1.5f;
-	}
-	if (camera_pitch > 1.5f) {
-		camera_pitch = 1.5f;
-	}
-
-	last_x = x;
-	last_y = y;
-
-	glutPostRedisplay();
-}
 
 // Funci�n principal
 int main(int argc, char** argv)
@@ -408,9 +410,6 @@ int main(int argc, char** argv)
 	glutDisplayFunc(Display);
 	glutIdleFunc(Idle);
 
-	// Movimiento de la camara con el raton
-	glutMotionFunc(motion);
-
 	// Establecemos la función de reshape
 	glutReshapeFunc(reshape);
 
@@ -424,6 +423,23 @@ int main(int argc, char** argv)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+	// Habilitar la niebla
+	glEnable(GL_FOG);
+
+	// Establecer el color de la niebla (en RGB)
+	GLfloat fogColor[4] = { 0.5, 0.5, 0.5, 1.0 }; // Gris
+	glFogfv(GL_FOG_COLOR, fogColor);
+
+	// Establecer la densidad de la niebla
+	GLfloat fogDensity = 0.01; // Valor entre 0.0 y 1.0
+	glFogf(GL_FOG_DENSITY, fogDensity);
+
+	// Establecer la distancia inicial y final de la niebla
+	GLfloat fogStart = 100.0; // Distancia inicial de la niebla
+	GLfloat fogEnd = 1000.0; // Distancia final de la niebla
+	glFogf(GL_FOG_START, fogStart);
+	glFogf(GL_FOG_END, fogEnd);
 
 	// Comienza la ejecuci�n del core de GLUT
 	glutMainLoop();
