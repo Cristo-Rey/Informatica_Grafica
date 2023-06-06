@@ -24,6 +24,8 @@ using namespace std;
 #define QT_ANELLS 10
 #define PI 3.14159265358979323846
 
+bool llum=true;
+
 float avioX = 0.0;
 float avioY = 0.0;
 float avioZ = 0.0;
@@ -43,9 +45,11 @@ float aspect = (float)W_WIDTH / (float)W_HEIGHT;
 float nearClip = 0.1f;
 float farClip = 1000.0f;
 
+
+
 // Variables de la luz
-GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat light_ambient[] = { 0.0025, 0.0025, 0.0025, 1.0 };
+GLfloat llumAvio[] = { 0.0,0.0,0.0,1.0 };
 
 // ID de la textura
 GLuint texturaID; // ID de la textura
@@ -179,55 +183,54 @@ void handleKeypress(unsigned char key, int x, int y) {
 	case 'r':
 		avioX = 0.0;
 		avioY = 0.0;
-		avioZ = 0.0;
+		avioZ = -20.0;
 		break;
 	}
 }
 
 
 void dibuixaBombilla(float x, float y, float z) {
-
 	glPushMatrix();
-	glTranslatef(x, y, z); // move the cube to the specified coordinates
+	glTranslatef(x, y, z-0.2); // move the cube to the specified coordinates
 
 	glBegin(GL_QUADS);
 
 	// Front face
-	glColor3f(0.1f, 0.1f, 0.1f); // color blanc
-	glVertex3f(-0.1f, -0.1f, 0.1f);
-	glVertex3f(0.1f, -0.1f, 0.1f);
-	glVertex3f(0.1f, 0.1f, 0.1f);
-	glVertex3f(-0.1f, 0.1f, 0.1f);
+	glColor3f(1.0f, 1.0f, 0.0f); // color groc
+	glVertex3f(-0.05f, -0.05f, 0.05f);
+	glVertex3f(0.05f, -0.05f, 0.05f);
+	glVertex3f(0.05f, 0.05f, 0.05f);
+	glVertex3f(-0.05f, 0.05f, 0.05f);
 
 	// Back face
-	glVertex3f(-0.1f, -0.1f, -0.1f);
-	glVertex3f(-0.1f, 0.1f, -0.1f);
-	glVertex3f(0.1f, 0.1f, -0.1f);
-	glVertex3f(0.1f, -0.1f, -0.1f);
+	glVertex3f(-0.05f, -0.05f, -0.05f);
+	glVertex3f(-0.05f, 0.05f, -0.05f);
+	glVertex3f(0.05f, 0.05f, -0.05f);
+	glVertex3f(0.05f, -0.05f, -0.05f);
 
 	// Top face
-	glVertex3f(-0.1f, 0.1f, -0.1f);
-	glVertex3f(-0.1f, 0.1f, 0.1f);
-	glVertex3f(0.1f, 0.1f, 0.1f);
-	glVertex3f(0.1f, 0.1f, -0.1f);
+	glVertex3f(-0.05f, 0.05f, -0.05f);
+	glVertex3f(-0.05f, 0.05f, 0.05f);
+	glVertex3f(0.05f, 0.05f, 0.05f);
+	glVertex3f(0.05f, 0.05f, -0.05f);
 
 	// Bottom face
-	glVertex3f(-0.1f, -0.1f, -0.1f);
-	glVertex3f(0.1f, -0.1f, -0.1f);
-	glVertex3f(0.1f, -0.1f, 0.1f);
-	glVertex3f(-0.1f, -0.1f, 0.1f);
+	glVertex3f(-0.05f, -0.05f, -0.05f);
+	glVertex3f(0.05f, -0.05f, -0.05f);
+	glVertex3f(0.05f, -0.05f, 0.05f);
+	glVertex3f(-0.05f, -0.05f, 0.05f);
 
 	// Right face
-	glVertex3f(0.1f, -0.1f, -0.1f);
-	glVertex3f(0.1f, 0.1f, -0.1f);
-	glVertex3f(0.1f, 0.1f, 0.1f);
-	glVertex3f(0.1f, -0.1f, 0.1f);
+	glVertex3f(0.05f, -0.05f, -0.05f);
+	glVertex3f(0.05f, 0.05f, -0.05f);
+	glVertex3f(0.05f, 0.05f, 0.05f);
+	glVertex3f(0.05f, -0.05f, 0.05f);
 
 	// Left face
-	glVertex3f(-0.1f, -0.1f, -0.1f);
-	glVertex3f(-0.1f, -0.1f, 0.1f);
-	glVertex3f(-0.1f, 0.1f, 0.1f);
-	glVertex3f(-0.1f, 0.1f, -0.1f);
+	glVertex3f(-0.05f, -0.05f, -0.05f);
+	glVertex3f(-0.05f, -0.05f, 0.05f);
+	glVertex3f(-0.05f, 0.05f, 0.05f);
+	glVertex3f(-0.05f, 0.05f, -0.05f);
 
 	glEnd();
 
@@ -299,41 +302,45 @@ void Display(void)
 		glTranslatef(5.0 + 2.7 * i, 5.0 + 1.5 * i, 20.0 * i);
 		glutSolidTorus(0.5, 3.5, 75, 50);
 		glPopMatrix();
-		if (i == 0) {
-			float coords[] = { (float)(5.0 + 2.7 * i), (float)(5.0 + 1.5 * i), (float)(20.0 * i) };
-
-			glEnable(GL_LIGHT0);
-			glLightfv(GL_LIGHT0, GL_POSITION, coords);
-			dibuixaBombilla(5.0 + 2.7 * i, 5.0 + 1.5 * i, 20.0 * i);
-		}
-
-
-		float fanal_0_position[] = { 10.0f, -5.0f, 60.0f };
-		float fanal_1_position[] = { -10.0f, -5.0f, 60.0f };
-		float fanal_2_position[] = { 10.0f, -5.0f, 200.0f };
-		float fanal_3_position[] = { -10.0f, -5.0f, 200.0f };
-		float fanal_4_position[] = { 10.0f, -5.0f, 340.0f };
-		float fanal_5_position[] = { -10.0f, -5.0f, 340.0f };
-
-
-		glColor3f(0.85f, 0.15f, 0.15f);
-		dibuixaFanal(fanal_0_position[0], fanal_0_position[1], fanal_0_position[2]);
-
-		glColor3f(0.15f, 0.85f, 0.15f);
-		dibuixaFanal(fanal_1_position[0], fanal_1_position[1], fanal_1_position[2]);
-
-		glColor3f(0.85f, 0.15f, 0.15f);
-		dibuixaFanal(fanal_2_position[0], fanal_2_position[1], fanal_2_position[2]);
-
-		glColor3f(0.15f, 0.85f, 0.15f);
-		dibuixaFanal(fanal_3_position[0], fanal_3_position[1], fanal_3_position[2]);
-
-		glColor3f(0.85f, 0.15f, 0.15f);
-		dibuixaFanal(fanal_4_position[0], fanal_4_position[1], fanal_4_position[2]);
-
-		glColor3f(0.15f, 0.85f, 0.15f);
-		dibuixaFanal(fanal_5_position[0], fanal_5_position[1], fanal_5_position[2]);
 	}
+
+	llumAvio[0] = avioX;
+	llumAvio[1] = avioY;
+	llumAvio[2] = avioZ +0.15f;
+
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, llumAvio);
+
+	dibuixaBombilla(llumAvio[0], llumAvio[1], llumAvio[2]);
+
+
+
+	float fanal_0_position[] = { 10.0f, -5.0f, 60.0f };
+	float fanal_1_position[] = { -10.0f, -5.0f, 60.0f };
+	float fanal_2_position[] = { 10.0f, -5.0f, 200.0f };
+	float fanal_3_position[] = { -10.0f, -5.0f, 200.0f };
+	float fanal_4_position[] = { 10.0f, -5.0f, 340.0f };
+	float fanal_5_position[] = { -10.0f, -5.0f, 340.0f };
+
+
+	glColor3f(0.85f, 0.15f, 0.15f);
+	dibuixaFanal(fanal_0_position[0], fanal_0_position[1], fanal_0_position[2]);
+
+	glColor3f(0.15f, 0.85f, 0.15f);
+	dibuixaFanal(fanal_1_position[0], fanal_1_position[1], fanal_1_position[2]);
+
+	glColor3f(0.85f, 0.15f, 0.15f);
+	dibuixaFanal(fanal_2_position[0], fanal_2_position[1], fanal_2_position[2]);
+
+	glColor3f(0.15f, 0.85f, 0.15f);
+	dibuixaFanal(fanal_3_position[0], fanal_3_position[1], fanal_3_position[2]);
+
+	glColor3f(0.85f, 0.15f, 0.15f);
+	dibuixaFanal(fanal_4_position[0], fanal_4_position[1], fanal_4_position[2]);
+
+	glColor3f(0.15f, 0.85f, 0.15f);
+	dibuixaFanal(fanal_5_position[0], fanal_5_position[1], fanal_5_position[2]);
+
 
 	// Ponemos una luz
 
@@ -424,6 +431,7 @@ int main(int argc, char** argv)
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
+
 	// Habilitar la niebla
 	glEnable(GL_FOG);
 
@@ -434,6 +442,8 @@ int main(int argc, char** argv)
 	// Establecer la densidad de la niebla
 	GLfloat fogDensity = 0.01; // Valor entre 0.0 y 1.0
 	glFogf(GL_FOG_DENSITY, fogDensity);
+
+
 
 	// Establecer la distancia inicial y final de la niebla
 	GLfloat fogStart = 100.0; // Distancia inicial de la niebla
