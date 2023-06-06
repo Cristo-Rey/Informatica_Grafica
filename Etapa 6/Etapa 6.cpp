@@ -7,20 +7,29 @@ using namespace std;
 #include <iostream>
 #include <cmath>
 #include <vector>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+
 #include <string>
 #include <sstream>
 #include <map>
 #include <fstream>
 #include <random>
 
-
 #include "GL/glut.h"
 #include "GL/gl.h"
 #include "GL/glu.h"
 
+#include <SOIL/SOIL.h>
+
+
+#define QT_ANELLS 10
 #define PI 3.14159265358979323846
+
+float avioX = 0.0;
+float avioY = 0.0;
+float avioZ = 0.0;
+float angle_helix = 0.0;
+
+const float ANELLS_COORDS[10][3] = { {0.0,0.0,5.0},{5.0,5.0,5.0},{20.0,15.0,10.0},{7.0,5.0,7.0},{-5.0,5.0,5.0},{-10.0,15.0,10.0},{-10.0,-15.0,10.0},{-7.0,5.0,5.0},{-7.0,-5.0,5.0},{-10.0,0.0,5.0} };
 
 const int W_WIDTH = 500; // Tama�o incial de la ventana
 const int W_HEIGHT = 500;
@@ -47,12 +56,11 @@ float camera_yaw = 0.0f; // ángulo de giro de la cámara
 GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
 
-void drawBlenderModel(float x, float y, float z, string filename) {
-	std::random_device rd;
-	std::mt19937 gen(rd());
+// ID de la textura
+GLuint texturaID; // ID de la textura
 
-	// Define the range of possible values
-	std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+void drawBlenderModel(float x, float y, float z, string filename) {
+
 	// Create Assimp importer and read file
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
@@ -60,19 +68,19 @@ void drawBlenderModel(float x, float y, float z, string filename) {
 		cerr << "Error: Unable to load model file '" << filename << "': " << importer.GetErrorString() << endl;
 		return;
 	}
-	float colors[3][3] = { {0.0,0.24,0.02},{0.17,0.09,0.03}, {0.54, 0.26, 0.01} };
 	// Draw meshes
 	glPushMatrix();
 	glTranslatef(x, y, z);
+	if(filename=="helix.obj"){
+		glRotatef(angle_helix,0.0,0.0,1.0);
+		angle_helix=angle_helix+20.0;
+	}
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 		const aiMesh* mesh = scene->mMeshes[i];
 		glBegin(GL_TRIANGLES);
 		for (unsigned int j = 0; j < mesh->mNumFaces; j++) {
 			const aiFace& face = mesh->mFaces[j];
 			for (unsigned int k = 0; k < face.mNumIndices; k++) {
-				int randomn = dist(gen);
-				//glColor3f(colors[randomn][0],colors[randomn][1],colors[randomn][2]);
-				glColor3f(dist(gen),dist(gen), dist(gen));
 				unsigned int index = face.mIndices[k];
 				if (mesh->HasNormals()) {
 					glNormal3fv(&mesh->mNormals[index].x);
@@ -85,57 +93,135 @@ void drawBlenderModel(float x, float y, float z, string filename) {
 	glPopMatrix();
 }
 
-void dibuixaEixos() {
-	glBegin(GL_LINES);
-	// Eje X en rojo
-	glColor3f(1.0, 0.0, 0.0);
-	glVertex3f(-100000.0f, 0.0f, 0.0f);
-	glVertex3f(100000.0f, 0.0f, 0.0f);
-	// Eje Y en verde
-	glColor3f(0.0, 1.0, 0.0);
-	glVertex3f(0.0f, -100000.0f, 0.0f);
-	glVertex3f(0.0f, 100000.0f, 0.0f);
-	// Eje Z en azul
-	glColor3f(0.0, 0.0, 1.0);
-	glVertex3f(0.0f, 0.0f, -100000.0f);
-	glVertex3f(0.0f, 0.0f, 100000.0f);
-	glEnd();
+
+void drawCylinderWithSphere(float x, float y, float z, float h, float r, float sphereRadius, int slices, int stacks) {
+    // Set the color of the cylinder and sphere
+    glColor3f(0.5f, 0.5f, 0.5f);
+
+    // Draw the top and bottom disks of the cylinder
+    const float diskHeight = h / 2.0f;
+    const int diskSlices = slices;
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(x, y + diskHeight, z);
+    for (int i = 0; i <= diskSlices; i++) {
+        float angle = i * 2.0f * PI / diskSlices;
+        glVertex3f(x + r * cos(angle), y + diskHeight, z + r * sin(angle));
+    }
+    glEnd();
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(x, y - diskHeight, z);
+    for (int i = 0; i <= diskSlices; i++) {
+        float angle = i * 2.0f * PI / diskSlices;
+        glVertex3f(x + r * cos(angle), y - diskHeight, z + r * sin(angle));
+    }
+    glEnd();
+
+    // Draw the sides of the cylinder
+    const float sideHeight = h;
+    const int sideSlices = slices;
+    const int sideStacks = stacks;
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= sideSlices; i++) {
+        float angle = i * 2.0f * PI / sideSlices;
+        float x1 = x + r * cos(angle);
+        float z1 = z + r * sin(angle);
+        float x2 = x + r * cos(angle);
+        float z2 = z + r * sin(angle);
+        for (int j = 0; j <= sideStacks; j++) {
+            float y = -diskHeight + j * sideHeight / sideStacks;
+            glVertex3f(x1, y, z1);
+            glVertex3f(x2, y + sideHeight / sideStacks, z2);
+        }
+    }
+    glEnd();
+
+    // Draw the sphere on top of the cylinder
+    const int sphereSlices = slices;
+    const int sphereStacks = stacks;
+    glColor3f(1.0f, 1.0f, 0.0f); // set the color of the sphere to yellow
+    glPushMatrix();
+    glTranslatef(x, y + diskHeight + sphereRadius, z); // move to the top of the cylinder
+    glutSolidSphere(sphereRadius, sphereSlices, sphereStacks); // draw a sphere
+    glPopMatrix();
 }
+
+void dibuixaEnterra() {
+
+	// Cargar la textura
+	glGenTextures(1, &texturaID);
+	glBindTexture(GL_TEXTURE_2D, texturaID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// Cargar la imagen de la textura con SOIL
+	int width, height, channels;
+	unsigned char* image = SOIL_load_image("hierba.png", &width, &height, &channels, SOIL_LOAD_RGB);
+	if (!image) {
+		std::cout << "Error al cargar la imagen de la textura" << std::endl;
+		return;
+	}
+
+	// Asignar la imagen de la textura a OpenGL
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+	// Liberar la memoria de la imagen cargada con SOIL
+	SOIL_free_image_data(image);
+
+	// Dibujar el suelo
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texturaID);
+
+	glBegin(GL_QUADS);
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	glTexCoord2f(0.0f, 0.0f);
+	glVertex3f(-10000.0f, -10.0f, -10000.0f);
+
+	glTexCoord2f(1000.0f, 0.0f);
+	glVertex3f(10000.0f, -10.0, -10000.0f);
+
+	glTexCoord2f(1000.0f, 1000.0f);
+	glVertex3f(10000.0f, -10.0f, 10000.0f);
+
+	glTexCoord2f(0.0f, 1000.0f);
+	glVertex3f(-10000.0f, -10.0f, 10000.0f);
+
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+}
+
 
 // Función de manejo de eventos de teclado
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 		// Cambio coordenada X de la luz móvil
-	case 'a':
-		light_position[0] -= 0.5;
+	case 'w':
+		avioZ = avioZ + 1.0;
 		break;
-	case 'z':
-		// Cambio coordenada X de la luz móvil
-		light_position[0] += 0.5;
+	case 'a':
+		avioX = avioX + 1.0;
 		break;
 	case 's':
-		// Cambio coordenada Y de la luz móvil
-		light_position[1] -= 0.5;
+		avioZ = avioZ - 1.0;
 		break;
-	case 'x':
-		// Cambio coordenada Y de la luz móvil
-		light_position[1] += 0.5;
-		break;
-		// Cambio coordenada Z de la luz móvil
 	case 'd':
-		light_position[2] -= 0.5;
-		break;
-		// Cambio coordenada Z de la luz móvil
-	case 'c':
-		light_position[2] += 0.5;
+		avioX = avioX - 1.0;
 		break;
 	}
 }
 
 // Función de manejo de eventos de teclado especial
 void handleSpecialKeypress(int key, int x, int y) {
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+	switch (key) {
+	case GLUT_KEY_DOWN:
+		avioY = avioY - 1.0;
+		break;
+	case GLUT_KEY_UP:
+		avioY = avioY + 1.0;
+		break;
+	}
 }
 
 // Dibuixa un cub. Emprat per saber on tenim les llums col·locades
@@ -188,6 +274,8 @@ void dibuixaBombilla(float x, float y, float z) {
 	glPopMatrix();
 }
 
+
+
 // Funci�n que visualiza la escena OpenGL
 void Display(void)
 {
@@ -217,17 +305,27 @@ void Display(void)
 	);
 
 
-	dibuixaEixos();
+	dibuixaEnterra();
 	glPushMatrix();
 	glColor3f(1.0, 1.0, 1.0);
-	glTranslatef(orbit_radius * cos(orbit_angle), 0.0, orbit_radius * sin(orbit_angle));
-	drawBlenderModel(0, 0, 0, "avionsi.obj");
-	glColor3f(0.8, 0.7, 0.6);
-	drawBlenderModel(0, 0, 0, "helixi.obj");
-	glTranslatef(-orbit_radius * cos(orbit_angle), 0.0, -orbit_radius * sin(orbit_angle));
+	drawBlenderModel(avioX, avioY, avioZ, "avio.obj");
 	glPopMatrix();
-
 	glEnd();
+
+	glPushMatrix();
+	glColor3f(0.8, 0.7, 0.6);
+	drawBlenderModel(avioX, avioY, avioZ, "helix.obj");
+	glPopMatrix();
+	glEnd();
+
+	for (int i = 0; i < QT_ANELLS; i++) {
+		glPushMatrix();
+		glTranslatef(5.0 + 2.7 * i, 5.0 + 1.5 * i, 10.0 * i);
+		glutWireTorus(0.5, 3.5, 75, 50);
+		glPopMatrix();
+	}
+
+	drawCylinderWithSphere(0.0f, 0.0f, -10.0f, 4.0f, 1.0f, 0.5f, 160, 80);
 
 	// Ponemos una luz
 	glEnable(GL_LIGHT0);
@@ -317,7 +415,7 @@ int main(int argc, char** argv)
 	glutReshapeFunc(reshape);
 
 	// El color de fondo ser� el negro (RGBA, RGB + Alpha channel)
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
 
 	glutKeyboardFunc(handleKeypress);
 	glutSpecialFunc(handleSpecialKeypress);
