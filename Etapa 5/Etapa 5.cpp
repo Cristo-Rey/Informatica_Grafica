@@ -68,89 +68,6 @@ void dibuixaEixos() {
 // Función de manejo de eventos de teclado
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'q':
-		camDirX = camDirX * cos(0.1f) + camUpX * sin(0.1f);
-		camDirY = camDirY * cos(0.1f) + camUpY * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camUpZ * sin(0.1f);
-		break;
-	case 'e':
-		camDirX = camDirX * cos(-0.1f) + camUpX * sin(-0.1f);
-		camDirY = camDirY * cos(-0.1f) + camUpY * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camUpZ * sin(-0.1f);
-		break;
-
-		// plano cenital
-	case '1':
-		camPosX = 0.00f;
-		camPosY = 5.0f;
-		camPosZ = 0.00f;
-
-		camDirX = 0.001f;
-		camDirY = -2.6f;
-		camDirZ = 0.001f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano picado
-	case '2':
-		camPosX = -5.0f;
-		camPosY = 5.0f;
-		camPosZ = 0.0f;
-
-		camDirX = 0.5f;
-		camDirY = -0.5f;
-		camDirZ = 0.0f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-		break;
-		// Plano Normal
-	case '3':
-		camPosX = 0.0f;
-		camPosY = 0.0f;
-		camPosZ = 5.0f;
-		camDirX = 0.0f;
-		camDirY = 0.0f;
-		camDirZ = -1.0f;
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano contrapicado
-	case '4':
-		camPosX = 0.0f;
-		camPosY = 3.0f;
-		camPosZ = 3.0f;
-
-		camDirX = 0.0f;
-		camDirY = -0.5f;
-		camDirZ = -0.5f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-
-		break;
-		// Plano Nadir
-	case '5':
-		camPosX = 0.00f;
-		camPosY = -5.0f;
-		camPosZ = 0.00f;
-
-		camDirX = 0.001f;
-		camDirY = 2.6f;
-		camDirZ = 0.001f;
-
-		camUpX = 0.0f;
-		camUpY = 1.0f;
-		camUpZ = 0.0f;
-		break;
-
 		// Cambio coordenada X de la luz móvil
 	case 'a':
 		light_position[0] -= 0.5;
@@ -189,29 +106,6 @@ void handleKeypress(unsigned char key, int x, int y) {
 	}
 }
 
-// Función de manejo de eventos de teclado especial
-void handleSpecialKeypress(int key, int x, int y) {
-	switch (key) {
-	case GLUT_KEY_UP:
-		camDirY = camDirY * cos(0.1f) - camDirZ * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camDirY * sin(0.1f);
-		break;
-	case GLUT_KEY_DOWN:
-		camDirY = camDirY * cos(-0.1f) - camDirZ * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camDirY * sin(-0.1f);
-		break;
-	case GLUT_KEY_LEFT:
-		camDirX = camDirX * cos(0.1f) - camDirZ * sin(0.1f);
-		camDirZ = camDirZ * cos(0.1f) + camDirX * sin(0.1f);
-		break;
-	case GLUT_KEY_RIGHT:
-		camDirX = camDirX * cos(-0.1f) - camDirZ * sin(-0.1f);
-		camDirZ = camDirZ * cos(-0.1f) + camDirX * sin(-0.1f);
-		break;
-	}
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
-}
 
 // Dibuixa un cub. Emprat per saber on tenim les llums col·locades
 void dibuixaBombilla(float x, float y, float z) {
@@ -418,8 +312,6 @@ int main(int argc, char** argv)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glutKeyboardFunc(handleKeypress);
-	glutSpecialFunc(handleSpecialKeypress);
-
 	// Habilitamos la renderización de luz
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
