@@ -185,6 +185,15 @@ void handleKeypress(unsigned char key, int x, int y) {
 		avioY = 0.0;
 		avioZ = -20.0;
 		break;
+	case 't':
+		if (llum) {
+			glEnable(GL_LIGHT0);
+		}
+		else {
+			glDisable(GL_LIGHT0);
+		}
+		llum = !llum;
+		break;
 	}
 }
 
@@ -303,14 +312,11 @@ void Display(void)
 		glutSolidTorus(0.5, 3.5, 75, 50);
 		glPopMatrix();
 	}
-
 	llumAvio[0] = avioX;
 	llumAvio[1] = avioY;
-	llumAvio[2] = avioZ +0.15f;
+	llumAvio[2] = avioZ + 0.15f;
 
-	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, llumAvio);
-
 	dibuixaBombilla(llumAvio[0], llumAvio[1], llumAvio[2]);
 
 
@@ -430,6 +436,7 @@ int main(int argc, char** argv)
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glEnable(GL_LIGHT0);
 
 
 	// Habilitar la niebla
